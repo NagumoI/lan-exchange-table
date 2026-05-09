@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>交換テーブル</title>
+    <link rel="stylesheet" href="./styles.css">
+    <style>
+      .toast {
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+        padding: 12px 18px;
+        border-radius: 8px;
+        background: var(--ink);
+        color: #fff;
+        font-size: 0.9rem;
+        opacity: 0;
+        transform: translateY(8px);
+        transition: opacity 0.2s, transform 0.2s;
+        pointer-events: none;
+        z-index: 999;
+      }
+      .toast.show { opacity: 1; transform: none; }
+      .toast.error { background: #b91c1c; }
+
+      .item-meta button.delete-btn {
+        border-color: #dc2626;
+        color: #dc2626;
+      }
+      .loading-overlay {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 48px;
+        color: var(--muted);
+        font-size: 0.9rem;
+      }
+      .logout-btn {
+        padding: 0 14px;
+        min-height: 38px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--surface);
+        color: var(--muted);
+        font-size: 0.84rem;
+        font-weight: 700;
+        cursor: pointer;
+      }
+      .logout-btn:hover { color: var(--ink); border-color: var(--ink); }
+    </style>
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">LAN private table</p>
+          <h1>交換テーブル</h1>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+          <div class="session-card" aria-label="接続状態">
+            <span class="status-dot"></span>
+            <div>
+              <strong>接続中</strong>
+              <span id="host-display">読込中…</span>
+            </div>
+          </div>
+          <button class="logout-btn" id="logout-btn" type="button">ログアウト</button>
+        </div>
+      </header>
+
+      <main class="layout">
+        <!-- 投稿フォーム -->
+        <section class="compose-panel" aria-labelledby="compose-title">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">new exchange</p>
+              <h2 id="compose-title">共有する</h2>
+            </div>
+            <button class="icon-button" id="clear-btn" type="button"
+                    aria-label="下書きをクリア" title="下書きをクリア">
+              <span aria-hidden="true">↺</span>
+            </button>
+          </div>
+
+          <form class="compose-form" id="compose-form">
+            <label>
+              <span>タイトル</span>
+              <input id="title-input" type="text" placeholder="例: iPadから送った資料">
+            </label>
+
+            <label>
+              <span>本文</span>
+              <textarea id="body-input" rows="5" placeholder="共有したい内容を書く"></textarea>
+            </label>
+
+            <label class="file-drop" id="file-drop">
+              <input id="file-input" type="file">
+              <span class="file-icon" aria-hidden="true">＋</span>
+              <strong id="file-name">ファイルを選択</strong>
+              <small id="file-size">画像、PDF、メモなど</small>
+            </label>
+
+            <div class="form-row">
+              <label>
+                <span>表示ラベル</span>
+                <select id="label-select">
+                  <option>通常</option>
+                  <option>重要</option>
+                  <option>あとで確認</option>
+                  <option>保存用</option>
+                </select>
+              </label>
+              <button class="primary-button" id="submit-btn" type="button">
+                テーブルに置く
+              </button>
+            </div>
+
+            <p id="form-error" style="color:#b91c1c;font-size:0.88rem;display:none;margin:0;"></p>
+          </form>
+        </section>
+
+        <!-- 一覧パネル -->
+        <section class="table-panel" aria-labelledby="table-title">
+          <div class="toolbar">
+            <div>
+              <p class="eyebrow">private board</p>
+              <h2 id="table-title">最近の共有</h2>
+            </div>
+            <div class="toolbar-actions">
+              <label class="search-box">
+                <span aria-hidden="true">⌕</span>
+                <input id="search-input" type="search" placeholder="検索">
+              </label>
+              <div class="segmented" aria-label="表示切り替え">
+                <button class="active" id="seg-all"  type="button">全て</button>
+                <button              id="seg-imp" type="button">重要</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="exchange-list" id="exchange-list">
+            <div class="loading-overlay">読込中…</div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <script src="./app.js"></script>
+  </body>
+</html>

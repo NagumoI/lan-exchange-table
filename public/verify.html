@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>認証コード入力 — 交換テーブル</title>
+    <link rel="stylesheet" href="./styles.css">
+    <style>
+      .auth-shell {
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        padding: 24px;
+      }
+      .auth-card {
+        width: min(400px, 100%);
+        padding: 32px;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        background: var(--surface);
+        box-shadow: var(--shadow);
+      }
+      .auth-card .eyebrow { margin-bottom: 4px; }
+      .auth-card h1 { font-size: 2rem; margin-bottom: 8px; }
+      .auth-card .hint {
+        margin-bottom: 24px;
+        color: var(--muted);
+        font-size: 0.9rem;
+      }
+      .auth-form { display: grid; gap: 16px; }
+      .error-msg {
+        padding: 10px 14px;
+        border-radius: 8px;
+        background: #fef2f2;
+        color: #b91c1c;
+        font-size: 0.88rem;
+        display: none;
+      }
+      .error-msg.visible { display: block; }
+      .otp-input {
+        font-size: 2rem !important;
+        font-weight: 700;
+        letter-spacing: 0.3em;
+        text-align: center;
+      }
+      .primary-button { width: 100%; }
+      .back-link {
+        display: block;
+        margin-top: 16px;
+        text-align: center;
+        color: var(--muted);
+        font-size: 0.88rem;
+        text-decoration: none;
+      }
+      .back-link:hover { color: var(--accent); }
+    </style>
+  </head>
+  <body>
+    <div class="auth-shell">
+      <div class="auth-card">
+        <p class="eyebrow">LAN private table</p>
+        <h1>認証コード</h1>
+        <p class="hint">Discord に送信された 6 桁のコードを入力してください。</p>
+
+        <div class="auth-form">
+          <p id="error" class="error-msg" role="alert"></p>
+
+          <label>
+            <span>認証コード</span>
+            <input id="otp" class="otp-input" type="text"
+                   inputmode="numeric" pattern="[0-9]{6}"
+                   maxlength="6" placeholder="000000" autofocus>
+          </label>
+
+          <button id="verify-btn" class="primary-button" type="button">
+            認証する
+          </button>
+        </div>
+
+        <a class="back-link" href="/login">← ログイン画面に戻る</a>
+      </div>
+    </div>
+
+    <script>
+      const otpEl     = document.getElementById('otp');
+      const errorEl   = document.getElementById('error');
+      const verifyBtn = document.getElementById('verify-btn');
+
+      function showError(msg) {
+        errorEl.textContent = msg;
+        errorEl.classList.add('visible');
+      }
+
+      async function doVerify() {
+        errorEl.classList.remove('visible');
+        verifyBtn.disabled = true;
+        verifyBtn.textContent = '確認中…';
+
+        try {
+          const res = await fetch('/api/verify-otp', {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify({ otp: otpEl.value.trim() }),
+          });
+          const data = await res.json();
+          if (data.ok) {
+            location.href = data.next;
+          } else {
+            showError(data.message);
+            if (data.message.includes('試行回数')) {
+              setTimeout(() => { location.href = '/login'; }, 2000);
+            }
+          }
+        } catch {
+          showError('通信エラーが発生しました。');
+        } finally {
+          verifyBtn.disabled = false;
+          verifyBtn.textContent = '認証する';
+        }
+      }
+
+      verifyBtn.addEventListener('click', doVerify);
+      otpEl.addEventListener('keydown', e => e.key === 'Enter' && doVerify());
+
+      // 6桁入力で自動送信
+      otpEl.addEventListener('input', () => {
+        if (otpEl.value.length === 6) doVerify();
+      });
+    </script>
+  </body>
+</html>
