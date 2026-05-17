@@ -1,7 +1,4 @@
-"""
-LAN内交換テーブル - FastAPI サーバー
-仕様書に基づいた実装（passlib不使用版）
-"""
+
 
 import hashlib
 import json
